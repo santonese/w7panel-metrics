@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- 统一 Make 发布目标并新增 `make full VERSION=x.y.z`，根据指定版本打包 Helm 和推送 ZPK；本项目没有 UI 或自有镜像，对应阶段跳过，避免继续依赖硬编码的旧 Helm 包名。
+
 - 修复 Sysbox CKM 内 node-exporter 因根目录不是 shared/slave 挂载而无法生成容器规格的问题：根 Chart 默认不为 /host/root 请求挂载传播，使采集 Pod 能启动；此前该错误会让 node-exporter DaemonSet 持续不就绪。
 
 - 新增仓库内 `w7panel-metrics-monitoring` Skill，汇总本 Chart 实际采集的指标、标签、PromQL/LogsQL 用法及采集排障路径，便于按统一口径查询监控数据。
