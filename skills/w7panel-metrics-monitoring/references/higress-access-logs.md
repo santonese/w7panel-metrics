@@ -1,6 +1,6 @@
 # Higress access logs
 
-When both `victoriaLogs.enabled` and `higressAccessLogs.enabled` are true, Vector reads Higress gateway access logs and writes JSON lines to VictoriaLogs. This is request-level observability, separate from Prometheus metrics.
+The `metrics-traffic` plugin owns Vector and its `higressAccessLogs.enabled` switch. Vector reads Higress gateway access logs and writes JSON lines to the VictoriaLogs instance owned by `w7panel-metrics`. This is request-level observability, separate from Prometheus metrics.
 
 The stream fields are `log_type`, `route_namespace`, and `authority`; query `log_type:higress_access`. Normalized fields include:
 
@@ -19,4 +19,3 @@ _stream:{log_type="higress_access"} | stats sum(bytes_sent) as egress_bytes by (
 ```
 
 The Vector transform removes `request_id`, `trace_id`, `user_agent`, `x_forwarded_for`, and downstream/upstream address fields before ingestion. Do not rely on them being searchable. `workload_title` uses the Kubernetes `w7.cc.app/title` label when available and otherwise falls back to the workload/service name.
-

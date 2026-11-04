@@ -1,5 +1,7 @@
 # w7panel-metrics
 
+Higress 指标抓取和访问日志采集现由 `metrics-plugins/metrics-traffic` 独立管理；本 Chart 保留 VictoriaMetrics、VictoriaLogs 和已有存储卷。启用流量插件的采集功能前，应先升级本 Chart 以移除旧采集器，避免访问日志重复入库。
+
 ## 存储容量指标
 
 Chart 默认采集 Longhorn 容量指标；kubelet PVC 容量采集默认关闭，按需开启后可观察卷内文件系统用量。

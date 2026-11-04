@@ -12,7 +12,7 @@ The table records what the Chart actually creates. `Enabled` refers to the defau
 | Kubernetes API | API server service scrape / enabled | API-server exporter output, notably `apiserver_*`, `workqueue_*`, `etcd_*` where exposed | `job`, `instance` |
 | Cilium agent | `VMPodScrape` / enabled | `cilium_drop_{count,bytes}_total`, `cilium_endpoint*`, `cilium_unreachable_{nodes,health_endpoints}`, `cilium_bpf_map_pressure`, `cilium_version` | `node`, endpoint labels |
 | Hubble | `VMPodScrape` / enabled | every `hubble_*` family exposed by Cilium | `node`, flow source/destination context labels |
-| Higress gateway | `VMPodScrape` / enabled | `envoy_cluster_upstream_rq_{total,2xx,3xx,4xx,5xx,time_bucket,time_sum,time_count}`, `envoy_cluster_upstream_cx_{rx,tx}_bytes_total`, `envoy_http_downstream_rq_total` | `cluster_name`, `response_code`, `destination_service`, `source_*` when emitted |
+| Higress gateway (`metrics-traffic` plugin) | `VMPodScrape` / enabled in plugin | `envoy_cluster_upstream_rq_{total,2xx,3xx,4xx,5xx,time_bucket,time_sum,time_count}`, `envoy_cluster_upstream_cx_{rx,tx}_bytes_total`, `envoy_http_downstream_rq_total` | `cluster_name`, `response_code`, `destination_service`, `source_*` when emitted |
 | NVIDIA GPU | DCGM service scrape / enabled when Service exists | exporter-provided `DCGM_FI_*` families | `gpu`, `UUID`, `modelName`, `Hostname` |
 | HAMI | device plugin, scheduler, web UI service scrapes / enabled when Services exist | exporter-provided HAMI metrics | exporter-specific labels |
 
@@ -100,4 +100,3 @@ For GPU and HAMI, first list available metric names, then use the exporter’s l
 ```
 
 Do not assume a DCGM/HAMI metric name from another exporter release; their versions and enabled devices determine the emitted set.
-

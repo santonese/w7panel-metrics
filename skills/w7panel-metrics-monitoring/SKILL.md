@@ -25,9 +25,8 @@ For one-off cluster-local queries, execute from the VMSingle Pod or use port-for
 - Aggregate only after choosing the identity labels to retain. Typical labels are `namespace`, `pod`, `container`, `node`, `service`, `pvc`, `pvc_namespace`, `volume`, `route`, and `response_code`.
 - Use `sum by (...)` for totals and `max by (...)` for capacity gauges reported by multiple Longhorn manager Pods.
 - Guard ratios with a positive denominator, e.g. `used / capacity * 100`, and filter `capacity > 0` when necessary.
-- The Chart intentionally keeps only the metric families listed in the catalog for Cilium, Hubble, Higress, Longhorn, and optional kubelet PVC collection. Node exporter, cAdvisor, Kubernetes API, DCGM, and HAMI scrape their exporter output broadly; discover exact names from the running cluster before asserting a metric is available.
+- This Chart keeps only the metric families listed in the catalog for Cilium, Hubble, Longhorn, and optional kubelet PVC collection. The `metrics-traffic` plugin owns Higress collection. Node exporter, cAdvisor, Kubernetes API, DCGM, and HAMI scrape their exporter output broadly; discover exact names from the running cluster before asserting a metric is available.
 
 ## Configuration boundaries
 
-`longhornMetrics.enabled` defaults to true. `kubeletVolumeMetrics.enabled` defaults to false because a kubelet `/metrics` scrape can be large and some clusters do not expose `kubelet_volume_stats_*`. Enable it only when PVC filesystem-level usage is required. Cilium, Hubble, Higress, and access-log collectors also have independent values switches; see the catalog before changing Chart values.
-
+`longhornMetrics.enabled` defaults to true. `kubeletVolumeMetrics.enabled` defaults to false because a kubelet `/metrics` scrape can be large and some clusters do not expose `kubelet_volume_stats_*`. Enable it only when PVC filesystem-level usage is required. Cilium and Hubble have independent switches here; Higress metrics and access logs use switches in the `metrics-traffic` plugin.

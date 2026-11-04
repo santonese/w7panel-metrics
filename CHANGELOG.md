@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- 将 Higress `VMPodScrape`、Vector 访问日志及工作负载快照资源迁到 `metrics-plugins/metrics-traffic`，使流量监测独立安装；本 Chart 继续管理 VictoriaLogs 和原有 PVC，避免迁移时丢失历史日志。升级时须先停用旧采集再启用插件采集，避免重复入库。
+
 - 统一 Make 发布目标并新增 `make full VERSION=x.y.z`，根据指定版本打包 Helm 和推送 ZPK；本项目没有 UI 或自有镜像，对应阶段跳过，避免继续依赖硬编码的旧 Helm 包名。
 
 - 修复 Sysbox CKM 内 node-exporter 因根目录不是 shared/slave 挂载而无法生成容器规格的问题：根 Chart 默认不为 /host/root 请求挂载传播，使采集 Pod 能启动；此前该错误会让 node-exporter DaemonSet 持续不就绪。
