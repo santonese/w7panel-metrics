@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- 修复 vmagent 在启用 `cri-containerd.apparmor.d` 的节点收到配置重载后 CrashLoopBackOff：内核拒绝其向自身发送 SIGHUP，进程因 `cannot send SIGHUP to itself: permission denied` panic。仅将 vmagent 容器设为 AppArmor unconfined，使重载和指标入库恢复；其他监控容器仍沿用原策略。
+
 - 默认启用 node-exporter textfile collector 读取宿主 `/run/sysbox-metrics`。Sysbox 的恢复指标 socket 位于 root-only 目录，非 root 采集器无法直接读取；独立只读 textfile 让每节点现有采集器抓取恢复成功率和延迟直方图，不增加 sidecar 或网络端口。
 
 - 将 Higress `VMPodScrape`、Vector 访问日志及工作负载快照资源迁到 `metrics-plugins/metrics-traffic`，使流量监测独立安装；本 Chart 继续管理 VictoriaLogs 和原有 PVC，避免迁移时丢失历史日志。升级时须先停用旧采集再启用插件采集，避免重复入库。

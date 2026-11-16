@@ -5,6 +5,10 @@ metadata:
    labels:
          {{- include "w7panel-metrics.labels" . | nindent 4 }}
 spec:
+    podMetadata:
+        annotations:
+            # The containerd profile denies vmagent's self-SIGHUP on config reload.
+            container.apparmor.security.beta.kubernetes.io/vmagent: unconfined
     managedMetadata:
         labels:
             w7.cc/group-name: {{ include "w7panel-metrics.fullname" . }}
