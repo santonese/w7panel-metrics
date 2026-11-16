@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- 默认启用 node-exporter textfile collector 读取宿主 `/run/sysbox-metrics`。Sysbox 的恢复指标 socket 位于 root-only 目录，非 root 采集器无法直接读取；独立只读 textfile 让每节点现有采集器抓取恢复成功率和延迟直方图，不增加 sidecar 或网络端口。
+
 - 将 Higress `VMPodScrape`、Vector 访问日志及工作负载快照资源迁到 `metrics-plugins/metrics-traffic`，使流量监测独立安装；本 Chart 继续管理 VictoriaLogs 和原有 PVC，避免迁移时丢失历史日志。升级时须先停用旧采集再启用插件采集，避免重复入库。
 
 - 统一 Make 发布目标并新增 `make full VERSION=x.y.z`，根据指定版本打包 Helm 和推送 ZPK；本项目没有 UI 或自有镜像，对应阶段跳过，避免继续依赖硬编码的旧 Helm 包名。
