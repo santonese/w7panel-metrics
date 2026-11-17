@@ -1,4 +1,4 @@
-{{- if .Values.kubeletVolumeMetrics.enabled }}
+{{- if (.Values.kubeletVolumeMetrics | default dict).enabled }}
 apiVersion: operator.victoriametrics.com/v1beta1
 kind: VMNodeScrape
 metadata:

@@ -1,4 +1,5 @@
-{{- if .Values.sysboxRecoveryAlerts.notifierURL }}
+{{- $alerts := .Values.sysboxRecoveryAlerts | default dict -}}
+{{- if $alerts.notifierURL }}
 apiVersion: operator.victoriametrics.com/v1beta1
 kind: VMAlert
 metadata:
@@ -15,7 +16,7 @@ spec:
   datasource:
     url: http://vmsingle-{{ include "w7panel-metrics.fullname" . }}-single.{{ .Release.Namespace }}.svc.cluster.local:8429
   notifier:
-    url: {{ .Values.sysboxRecoveryAlerts.notifierURL | quote }}
+    url: {{ $alerts.notifierURL | quote }}
   evaluationInterval: 30s
   ruleSelector:
     matchLabels:
