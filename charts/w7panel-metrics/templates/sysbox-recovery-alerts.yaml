@@ -1,0 +1,48 @@
+{{- if .Values.sysboxRecoveryAlerts.notifierURL }}
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMAlert
+metadata:
+  name: {{ include "w7panel-metrics.fullname" . }}-sysbox
+  labels:
+    {{- include "w7panel-metrics.labels" . | nindent 4 }}
+spec:
+  podMetadata:
+    annotations:
+      # The containerd profile denies vmalert's self-SIGHUP on rule reload.
+      container.apparmor.security.beta.kubernetes.io/vmalert: unconfined
+  image:
+    tag: v1.113.0
+  datasource:
+    url: http://vmsingle-{{ include "w7panel-metrics.fullname" . }}-single.{{ .Release.Namespace }}.svc.cluster.local:8429
+  notifier:
+    url: {{ .Values.sysboxRecoveryAlerts.notifierURL | quote }}
+  evaluationInterval: 30s
+  ruleSelector:
+    matchLabels:
+      sysbox.w7panel.io/recovery-alerts: {{ .Release.Name | quote }}
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  name: {{ include "w7panel-metrics.fullname" . }}-sysbox
+  labels:
+    {{- include "w7panel-metrics.labels" . | nindent 4 }}
+    sysbox.w7panel.io/recovery-alerts: {{ .Release.Name | quote }}
+spec:
+  groups:
+    - name: sysbox-recovery
+      interval: 30s
+      rules:
+        - alert: SysboxFUSERecoveryFailure
+          expr: increase(sysbox_fs_recovery_failures_total[5m]) > 0
+          labels:
+            severity: warning
+          annotations:
+            summary: Sysbox FUSE mount recovery failed on this node
+        - alert: SysboxFrequentStaleFUSEReads
+          expr: increase(sysbox_fs_recovery_frequent_fault_processes_total[5m]) > 0
+          labels:
+            severity: warning
+          annotations:
+            summary: A process repeatedly accessed stale Sysbox FUSE descriptors
+{{- end }}

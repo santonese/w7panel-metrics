@@ -129,6 +129,10 @@ nodeexporter:
   pod:
     enabled: false # 是否使用pod-node-exporter
 
+# Set an existing Alertmanager URL to evaluate and deliver Sysbox recovery alerts.
+sysboxRecoveryAlerts:
+  notifierURL: ""
+
 servicelb:
   enabled: false
   port: 9429
