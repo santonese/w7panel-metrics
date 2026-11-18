@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- 修复监控管理左侧菜单切换无效：监听宿主 Wujie `routeChange` 事件并切换前端路由，使监控大屏与监控插件菜单显示对应页面。
+
 - 修复从旧版监控 release 使用 `--reuse-values` 升级时 Sysbox 告警模板空指针：旧 values 没有 `sysboxRecoveryAlerts`、`longhornMetrics` 或 `kubeletVolumeMetrics`，现在按未配置处理，避免模板空指针；配置这些功能后仍按原规则生成资源。
 
 - 为 Sysbox 恢复失败与高频旧 FUSE FD 读取增加 VMAlert/VMRule；配置现有 Alertmanager 地址后启用评估与投递。此前只有指标入库，平台没有规则评估器，无法发出告警。VMAlert 单独禁用 AppArmor 限制，避免规则热重载时自发 SIGHUP 被拒绝而重启。
