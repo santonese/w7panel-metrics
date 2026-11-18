@@ -1,0 +1,60 @@
+const props = () => window.__POWERED_BY_WUJIE__ ? window.$wujie?.props || {} : window.microData?.cd || {}
+
+async function payload(response) {
+  const body = await response.json().catch(() => null)
+  if (!response.ok) throw new Error(body?.msg || body?.message || `请求失败 (${response.status})`)
+  return body?.data ?? body
+}
+
+export async function panelGet(path) {
+  const proxy = props().panelProxy
+  if (typeof proxy !== 'function') throw new Error('面板未提供 panelProxy，请升级面板后重试')
+  return payload(await proxy(path))
+}
+
+export async function k8sGet(path) {
+  const proxy = props().k8sproxy
+  if (typeof proxy !== 'function') throw new Error('面板未提供 Kubernetes 代理')
+  return payload(await proxy(path))
+}
+
+export function appHandles() { return props().handles || {} }
+
+export function openPluginMenu(group) {
+  const action = props().openAppMenu
+  if (typeof action !== 'function') throw new Error('面板未提供应用菜单入口，请升级面板后重试')
+  return action(group)
+}
+
+export function normalizeIdentify(value) { return String(value || '').trim().toLowerCase().replaceAll('_', '-') }
+
+export async function loadMarketPlugins() {
+  const response = await fetch('https://zm.w7.com/zpk-market/formula/list', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ page: 1, limit: 500, tag: '监控插件' }),
+  })
+  const body = await payload(response)
+  if (!Array.isArray(body?.list)) throw new Error('制品市场返回的监控插件列表格式不正确')
+  return body.list.filter(item => item.application_type === 'metrics-plugin')
+}
+
+export function pluginRows(market, groups) {
+  const installedGroups = groups.filter(group => {
+    const type = group?.metadata?.labels?.['w7.cc/manifest-type'] || group?.metadata?.annotations?.['w7.cc/manifest-type']
+    return type === 'metrics-plugin'
+  })
+  const identify = group => normalizeIdentify(group.spec?.identifie || group.metadata?.annotations?.['w7.cc/identifie'] || group.metadata?.name)
+  const installed = new Map(installedGroups.map(group => [identify(group), group]))
+  const marketIds = new Set(market.map(item => normalizeIdentify(item.identify)))
+  return [
+    ...market.map(item => ({ ...item, appGroup: installed.get(normalizeIdentify(item.identify)) || null })),
+    ...installedGroups.filter(group => !marketIds.has(identify(group))).map(group => ({
+      identify: identify(group),
+      name: group.spec?.title || group.metadata?.name,
+      description: '',
+      latest_version: group.spec?.version || '',
+      appGroup: group,
+    })),
+  ]
+}

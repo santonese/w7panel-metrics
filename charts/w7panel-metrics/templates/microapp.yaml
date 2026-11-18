@@ -1,0 +1,39 @@
+apiVersion: microapp.w7.cc/v1alpha1
+kind: MicroApp
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    w7.cc/identifie: w7panel-metrics
+    w7.cc/version: {{ .Chart.AppVersion | quote }}
+    role.w7.cc/founder: "true"
+spec:
+  title: 监控管理
+  frontendUrl: /ui/microapp/w7panel-metrics/{{ .Chart.AppVersion }}/index.html
+  config-v2:
+    props:
+      roleConfig:
+        founder:
+          load_mode: wujie
+          frontend_props:
+            group: {{ .Release.Name | quote }}
+  bindings:
+    - name: founder
+      title: 创始人
+      status: 1
+      support: thirdparty_cd
+      framework: vue3
+      is_default_register: 1
+      location: left
+      menu:
+        - displayorder: 0
+          do: '#/dashboard'
+          title: 监控大屏
+          icon: dashboard
+          location: normal
+          is_default: 1
+        - displayorder: 1
+          do: '#/plugins'
+          title: 监控插件
+          icon: apps
+          location: normal
+          is_default: 1

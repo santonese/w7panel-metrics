@@ -1,5 +1,7 @@
 # w7panel-metrics
 
+监控管理前端位于 `ui/`。`make build-ui` 生成 `dist/dist.zip`；`make full VERSION=x.y.z` 将前端附件与 Helm Chart 一起推送到 ZPK。安装后 MicroApp 的创始人菜单包含监控大屏和监控插件，后者展示制品市场中 `application_type=metrics-plugin` 的应用。
+
 Higress 指标抓取和访问日志采集现由 `metrics-plugins/metrics-traffic` 独立管理；本 Chart 保留 VictoriaMetrics、VictoriaLogs 和已有存储卷。启用流量插件的采集功能前，应先升级本 Chart 以移除旧采集器，避免访问日志重复入库。
 
 ## 存储容量指标
