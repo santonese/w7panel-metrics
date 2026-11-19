@@ -129,9 +129,11 @@ nodeexporter:
   pod:
     enabled: false # 是否使用pod-node-exporter
 
-# Set an existing Alertmanager URL to evaluate and deliver Sysbox recovery alerts.
+# Set an existing Alertmanager URL, or provide a Secret containing a WeCom robot webhook.
+# The WeCom Secret must contain the full webhook URL under the `url` key.
 sysboxRecoveryAlerts:
   notifierURL: ""
+  wecomWebhookSecretName: ""
 
 servicelb:
   enabled: false

@@ -1,0 +1,89 @@
+{{- $alerts := .Values.sysboxRecoveryAlerts | default dict -}}
+{{- if $alerts.wecomWebhookSecretName }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "w7panel-metrics.fullname" . }}-sysbox-wecom
+data:
+  relay.py: |
+{{ .Files.Get "files/sysbox-wecom-relay.py" | indent 4 }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "w7panel-metrics.fullname" . }}-sysbox-wecom
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "w7panel-metrics.fullname" . }}-sysbox-wecom
+  template:
+    metadata:
+      labels:
+        app: {{ include "w7panel-metrics.fullname" . }}-sysbox-wecom
+      annotations:
+        checksum/script: {{ .Files.Get "files/sysbox-wecom-relay.py" | sha256sum }}
+    spec:
+      containers:
+        - name: relay
+          image: python:3.12-alpine
+          command: ["python", "-u", "/app/relay.py"]
+          env:
+            - name: WECOM_WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $alerts.wecomWebhookSecretName | quote }}
+                  key: url
+          ports:
+            - name: http
+              containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 64Mi
+          volumeMounts:
+            - name: script
+              mountPath: /app
+              readOnly: true
+      volumes:
+        - name: script
+          configMap:
+            name: {{ include "w7panel-metrics.fullname" . }}-sysbox-wecom
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "w7panel-metrics.fullname" . }}-sysbox-wecom
+spec:
+  selector:
+    app: {{ include "w7panel-metrics.fullname" . }}-sysbox-wecom
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMAlertmanager
+metadata:
+  name: {{ include "w7panel-metrics.fullname" . }}-sysbox
+spec:
+  replicaCount: 1
+  configRawYaml: |
+    route:
+      receiver: sysbox-wecom
+      group_by: [alertname, node]
+      group_wait: 10s
+      group_interval: 5m
+      repeat_interval: 4h
+    receivers:
+      - name: sysbox-wecom
+        webhook_configs:
+          - url: http://{{ include "w7panel-metrics.fullname" . }}-sysbox-wecom.{{ .Release.Namespace }}.svc:8080/alerts
+            send_resolved: true
+{{- end }}
