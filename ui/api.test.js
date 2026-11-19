@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { loadMarketPlugins, pluginRows } from './api.js'
+import { loadMarketPlugins, pluginRows, pluginUpgrades } from './api.js'
 
 test('market list keeps only monitoring plugin applications', async () => {
   const original = globalThis.fetch
@@ -23,4 +23,22 @@ test('installed AppGroup matches market identify with underscore normalization',
   assert.equal(pluginRows(market, groups)[0].appGroup, groups[0])
   assert.equal(pluginRows(market, [])[0].appGroup, null)
   assert.equal(pluginRows([], groups).length, 0)
+})
+
+test('upgrade check covers installed plugins and ignores individual failures', async () => {
+  const rows = [
+    { identify: 'old', appGroup: { metadata: { name: 'old-release' } } },
+    { identify: 'broken', appGroup: { metadata: { name: 'broken-release' } } },
+    { identify: 'new', appGroup: null },
+  ]
+  const checked = []
+  const upgrades = await pluginUpgrades(rows, async ({ appIdentify, silent }) => {
+    assert.equal(silent, true)
+    checked.push(appIdentify)
+    if (appIdentify === 'broken-release') throw new Error('unavailable')
+    return { canUpgrade: true, version: '1.0.2', zpkUrl: 'https://example.test/plugin' }
+  })
+  assert.deepEqual(checked.sort(), ['broken-release', 'old-release'])
+  assert.deepEqual(Object.keys(upgrades), ['old-release'])
+  assert.equal(upgrades['old-release'].version, '1.0.2')
 })

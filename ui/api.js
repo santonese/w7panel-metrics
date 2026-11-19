@@ -57,3 +57,13 @@ export function pluginRows(market, groups) {
     })),
   ]
 }
+
+export async function pluginUpgrades(rows, check) {
+  if (typeof check !== 'function') return {}
+  const entries = await Promise.all(rows.filter(row => row.appGroup).map(async row => {
+    const name = row.appGroup.metadata.name
+    try { return [name, await check({ appIdentify: name, silent: true })] }
+    catch { return [name, null] }
+  }))
+  return Object.fromEntries(entries.filter(([, info]) => info?.canUpgrade))
+}

@@ -15,7 +15,15 @@
         <a-table v-show="!collapsed" :data="filteredRows" :loading="loading" :pagination="false" :show-header="false" :bordered="false" row-key="identify">
           <template #columns>
             <a-table-column title="插件" :width="360"><template #cell="{ record }">
-              <div class="plugin-name">{{ record.name }}</div>
+              <div class="plugin-name">{{ record.name }}
+                <a-popover v-if="upgrades[record.appGroup?.metadata?.name]?.canUpgrade" trigger="click" position="bottom">
+                  <a-link status="danger" class="upgrade-badge"><icon-exclamation-circle-fill /> 新版本</a-link>
+                  <template #content>
+                    <div>新版本：{{ upgrades[record.appGroup.metadata.name].version }}</div>
+                    <div class="upgrade-actions"><a-button size="small" @click="showUpgrade(record)">查看更新说明</a-button><a-button size="small" type="primary" @click="upgrade(record)">立即更新</a-button></div>
+                  </template>
+                </a-popover>
+              </div>
               <div class="muted plugin-detail">{{ record.identify }}<span v-if="record.latest_version" class="plugin-version">v{{ record.latest_version }}</span></div>
               <div v-if="record.description" class="muted plugin-detail">{{ record.description }}</div>
             </template></a-table-column>
@@ -35,15 +43,20 @@
         <a-empty v-else-if="!loading" description="暂无监控插件" />
       </div>
     </section>
+    <a-modal v-model:visible="upgradeDetail.show" title="版本说明" hide-cancel @ok="upgradeDetail.show = false">
+      <a-tag color="red">新版本 {{ upgradeDetail.version }}</a-tag>
+      <div class="upgrade-description">{{ upgradeDetail.description || '暂无更新说明' }}</div>
+    </a-modal>
   </section>
 </template>
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { Message } from '@arco-design/web-vue'
-import { appHandles, k8sGet, loadMarketPlugins, openPluginMenu, pluginRows } from './api'
+import { appHandles, k8sGet, loadMarketPlugins, openPluginMenu, pluginRows, pluginUpgrades } from './api'
 
 const rows = ref([]), loading = ref(false), error = ref(''), keyword = ref(''), collapsed = ref(false)
+const upgrades = ref({}), upgradeDetail = ref({ show: false, version: '', description: '' })
 const filteredRows = computed(() => {
   const search = keyword.value.trim().toLowerCase()
   return search ? rows.value.filter(row => `${row.name} ${row.identify} ${row.description || ''}`.toLowerCase().includes(search)) : rows.value
@@ -57,6 +70,7 @@ async function refresh() {
       k8sGet('/apis/w7panel.w7.com/v1alpha1/namespaces/default/appgroups'),
     ])
     rows.value = pluginRows(market, groups?.items || [])
+    upgrades.value = await pluginUpgrades(rows.value, appHandles().checkInstalledAppUpgrade)
   } catch (cause) {
     error.value = cause.message || '读取监控插件失败'
   } finally { loading.value = false }
@@ -68,6 +82,15 @@ function install(row) {
 }
 function openMenu(row) {
   try { openPluginMenu(row.appGroup.metadata.name) } catch (cause) { Message.error(cause.message) }
+}
+function showUpgrade(row) {
+  upgradeDetail.value = { show: true, ...upgrades.value[row.appGroup.metadata.name] }
+}
+async function upgrade(row) {
+  const action = appHandles().openInstalledAppUpgrade
+  if (typeof action !== 'function') return Message.error('面板未提供应用更新入口，请升级面板后重试')
+  try { await action({ appIdentify: row.appGroup.metadata.name, upgrade: upgrades.value[row.appGroup.metadata.name] }) }
+  catch (cause) { Message.error(cause.message || '打开更新页面失败') }
 }
 async function uninstall(row) {
   const action = appHandles().uninstallInstalledApp
@@ -91,6 +114,9 @@ onMounted(refresh)
 .plugin-category__count{font-size:12px;font-weight:400;color:var(--color-text-3)}
 .plugin-category :deep(.arco-table-container){border-top:1px solid var(--color-border-1)}
 .plugin-name{font-weight:500}
+.upgrade-badge{margin-left:8px;font-size:12px}
+.upgrade-actions{display:flex;gap:8px;margin-top:12px}
+.upgrade-description{margin-top:16px;line-height:22px;white-space:pre-wrap}
 .plugin-detail{font-size:12px;margin-top:4px}
 .plugin-version{display:inline-block;margin-left:4px}
 @media(max-width:650px){
