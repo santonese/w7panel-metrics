@@ -36,7 +36,7 @@ export async function loadMarketPlugins() {
   })
   const body = await payload(response)
   if (!Array.isArray(body?.list)) throw new Error('制品市场返回的监控插件列表格式不正确')
-  return body.list
+  return body.list.filter(item => item.application_type === 'metrics-plugin')
 }
 
 export function pluginRows(market, groups) {
