@@ -40,16 +40,15 @@ export async function loadMarketPlugins() {
 }
 
 export function pluginRows(market, groups) {
-  const installedGroups = groups.filter(group => {
-    const type = group?.metadata?.labels?.['w7.cc/manifest-type'] || group?.metadata?.annotations?.['w7.cc/manifest-type']
-    return type === 'metrics-plugin'
-  })
   const identify = group => normalizeIdentify(group.spec?.identifie || group.metadata?.annotations?.['w7.cc/identifie'] || group.metadata?.name)
-  const installed = new Map(installedGroups.map(group => [identify(group), group]))
+  const installed = new Map(groups.map(group => [identify(group), group]))
   const marketIds = new Set(market.map(item => normalizeIdentify(item.identify)))
   return [
     ...market.map(item => ({ ...item, appGroup: installed.get(normalizeIdentify(item.identify)) || null })),
-    ...installedGroups.filter(group => !marketIds.has(identify(group))).map(group => ({
+    ...groups.filter(group => {
+      const type = group?.metadata?.labels?.['w7.cc/manifest-type'] || group?.metadata?.annotations?.['w7.cc/manifest-type']
+      return type === 'metrics-plugin' && !marketIds.has(identify(group))
+    }).map(group => ({
       identify: identify(group),
       name: group.spec?.title || group.metadata?.name,
       description: '',

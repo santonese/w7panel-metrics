@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- 监控插件列表沿用网关插件页的搜索、分组标题和无表头布局，并按制品市场 `监控插件` 标签展示应用。已安装应用实际使用 `helm` 类型 AppGroup，现按制品 `identify` 匹配状态，使卸载、应用菜单和卸载后的重新安装入口正确显示。
+
 - 修复监控管理左侧菜单切换无效：监听宿主 Wujie `routeChange` 事件并切换前端路由，使监控大屏与监控插件菜单显示对应页面。
 
 - 修复从旧版监控 release 使用 `--reuse-values` 升级时 Sysbox 告警模板空指针：旧 values 没有 `sysboxRecoveryAlerts`、`longhornMetrics` 或 `kubeletVolumeMetrics`，现在按未配置处理，避免模板空指针；配置这些功能后仍按原规则生成资源。
