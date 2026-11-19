@@ -8,10 +8,11 @@
       </a-space>
     </div>
     <a-alert v-if="error" type="error" show-icon>{{ error }}</a-alert>
-    <section class="card plugin-list">
-      <div v-if="filteredRows.length" class="plugin-category">
-        <div class="plugin-category__title"><span>监控插件</span><span class="plugin-category__count">{{ filteredRows.length }} 个插件</span></div>
-        <a-table :data="filteredRows" :loading="loading" :pagination="false" :show-header="false" :bordered="false" row-key="identify">
+    <section class="card plugin-panel">
+      <div class="plugin-list">
+        <div v-if="filteredRows.length" class="plugin-category">
+        <button type="button" class="plugin-category__title" :aria-expanded="!collapsed" @click="collapsed = !collapsed"><span class="category-label"><icon-right v-if="collapsed" /><icon-down v-else />监控插件</span><span class="plugin-category__count">{{ filteredRows.length }} 个插件</span></button>
+        <a-table v-show="!collapsed" :data="filteredRows" :loading="loading" :pagination="false" :show-header="false" :bordered="false" row-key="identify">
           <template #columns>
             <a-table-column title="插件" :width="360"><template #cell="{ record }">
               <div class="plugin-name">{{ record.name }}</div>
@@ -30,8 +31,9 @@
             </a-space></template></a-table-column>
           </template>
         </a-table>
+        </div>
+        <a-empty v-else-if="!loading" description="暂无监控插件" />
       </div>
-      <a-empty v-else-if="!loading" description="暂无监控插件" />
     </section>
   </section>
 </template>
@@ -41,7 +43,7 @@ import { computed, onMounted, ref } from 'vue'
 import { Message } from '@arco-design/web-vue'
 import { appHandles, k8sGet, loadMarketPlugins, openPluginMenu, pluginRows } from './api'
 
-const rows = ref([]), loading = ref(false), error = ref(''), keyword = ref('')
+const rows = ref([]), loading = ref(false), error = ref(''), keyword = ref(''), collapsed = ref(false)
 const filteredRows = computed(() => {
   const search = keyword.value.trim().toLowerCase()
   return search ? rows.value.filter(row => `${row.name} ${row.identify} ${row.description || ''}`.toLowerCase().includes(search)) : rows.value
@@ -79,14 +81,20 @@ onMounted(refresh)
 </script>
 
 <style scoped>
-.plugin-list{padding:0;overflow:hidden;border-radius:4px}
-.plugin-category__title{display:flex;align-items:center;justify-content:space-between;height:44px;padding:0 16px;background:var(--color-primary-light-1);color:rgb(var(--primary-6));border-left:3px solid rgb(var(--primary-6));font-size:14px;font-weight:500}
+.plugin-panel{padding:20px}
+.plugin-list{overflow:hidden;border:1px solid var(--color-border-2);border-radius:4px;background:var(--color-bg-2)}
+.plugin-category__title{display:flex;align-items:center;justify-content:space-between;width:100%;height:44px;padding:0 16px;border:0;background:var(--color-primary-light-1);color:rgb(var(--primary-6));box-shadow:inset 3px 0 0 rgb(var(--primary-6));font-size:14px;font-weight:500;text-align:left;cursor:pointer}
+.plugin-category__title[aria-expanded="false"]{background:var(--color-bg-2);color:var(--color-text-1);box-shadow:none}
+.plugin-category__title:hover{background:var(--color-fill-1);color:rgb(var(--primary-6))}
+.category-label{display:flex;align-items:center;gap:6px}
+.category-label :deep(.arco-icon){font-size:13px}
 .plugin-category__count{font-size:12px;font-weight:400;color:var(--color-text-3)}
 .plugin-category :deep(.arco-table-container){border-top:1px solid var(--color-border-1)}
 .plugin-name{font-weight:500}
 .plugin-detail{font-size:12px;margin-top:4px}
 .plugin-version{display:inline-block;margin-left:4px}
 @media(max-width:650px){
+  .plugin-panel{padding:12px}
   .page-heading{align-items:stretch;flex-direction:column}
   .page-heading :deep(.arco-input-wrapper){width:100%!important}
   .plugin-category :deep(.arco-table-element){width:100%!important;table-layout:fixed}
