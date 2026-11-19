@@ -20,11 +20,7 @@ export async function k8sGet(path) {
 
 export function appHandles() { return props().handles || {} }
 
-export function openPluginMenu(group) {
-  const action = props().openAppMenu
-  if (typeof action !== 'function') throw new Error('面板未提供应用菜单入口，请升级面板后重试')
-  return action(group)
-}
+export function pluginMenuUrl(group) { return `/appgroup/${encodeURIComponent(group)}/micro` }
 
 export function normalizeIdentify(value) { return String(value || '').trim().toLowerCase().replaceAll('_', '-') }
 

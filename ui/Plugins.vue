@@ -33,7 +33,7 @@
             <a-table-column title="操作" :width="220"><template #cell="{ record }"><a-space>
               <a-link v-if="!record.appGroup" @click="install(record)">安装</a-link>
               <template v-else>
-                <a-link @click="openMenu(record)">应用菜单</a-link>
+                <a-link :href="pluginMenuUrl(record.appGroup.metadata.name)" target="_blank" rel="noopener noreferrer">应用菜单 <icon-launch /></a-link>
                 <a-popconfirm v-if="record.appGroup.metadata?.annotations?.['w7.cc/deny-delete'] !== 'true'" :content="`确认卸载 ${record.name} 及其关联资源吗？`" type="warning" @ok="uninstall(record)"><a-link status="danger">卸载</a-link></a-popconfirm>
               </template>
             </a-space></template></a-table-column>
@@ -53,7 +53,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { Message } from '@arco-design/web-vue'
-import { appHandles, k8sGet, loadMarketPlugins, openPluginMenu, pluginRows, pluginUpgrades } from './api'
+import { appHandles, k8sGet, loadMarketPlugins, pluginMenuUrl, pluginRows, pluginUpgrades } from './api'
 
 const rows = ref([]), loading = ref(false), error = ref(''), keyword = ref(''), collapsed = ref(false)
 const upgrades = ref({}), upgradeDetail = ref({ show: false, version: '', description: '' })
@@ -79,9 +79,6 @@ function install(row) {
   const action = appHandles().toStoreInstall
   if (!row.formula_url || typeof action !== 'function') return Message.error('缺少制品安装入口，请升级面板后重试')
   action(row.formula_url)
-}
-function openMenu(row) {
-  try { openPluginMenu(row.appGroup.metadata.name) } catch (cause) { Message.error(cause.message) }
 }
 function showUpgrade(row) {
   upgradeDetail.value = { show: true, ...upgrades.value[row.appGroup.metadata.name] }

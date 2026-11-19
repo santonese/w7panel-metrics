@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { loadMarketPlugins, pluginRows, pluginUpgrades } from './api.js'
+import { loadMarketPlugins, pluginMenuUrl, pluginRows, pluginUpgrades } from './api.js'
+
+test('plugin menu opens the installed application route', () => {
+  assert.equal(pluginMenuUrl('metrics-audit'), '/appgroup/metrics-audit/micro')
+})
 
 test('market list keeps only monitoring plugin applications', async () => {
   const original = globalThis.fetch
